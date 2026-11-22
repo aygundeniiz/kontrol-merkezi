@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kontrol Merkezi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4f0; --panel:#ffffff; --panel2:#faf8f5; --line:#e7e2da; --ink:#1f1d1a; --muted:#77716a;
+  --accent:#c2643c; --accent-soft:#f6e6dd; --push:#2f6fd6; --push-soft:#e3ecfb; --pull:#2e9466; --pull-soft:#e0f2e9;
+  --pr:#8a4fd1; --pr-soft:#efe6fa; --warn:#c0392b; --shadow:0 1px 2px rgba(30,25,20,.04),0 4px 16px rgba(30,25,20,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141311; --panel:#1d1b19; --panel2:#24221f; --line:#33302c; --ink:#f1ede7; --muted:#9d968d;
+    --accent:#e07a4f; --accent-soft:#3a2a22; --push:#6c9cf0; --push-soft:#1f2a3d; --pull:#55c08f; --pull-soft:#1b3328;
+    --pr:#b28cf0; --pr-soft:#2c2340; --warn:#ef6f61; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141311; --panel:#1d1b19; --panel2:#24221f; --line:#33302c; --ink:#f1ede7; --muted:#9d968d;
+  --accent:#e07a4f; --accent-soft:#3a2a22; --push:#6c9cf0; --push-soft:#1f2a3d; --pull:#55c08f; --pull-soft:#1b3328;
+  --pr:#b28cf0; --pr-soft:#2c2340; --warn:#ef6f61; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+header.top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800}
+.top h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.01em}
+.top .sub{color:var(--muted);font-size:13px}
+.top .sag{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.btn:hover{border-color:var(--muted)}
+.btn.ana{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.kucuk{padding:4px 8px;font-size:12px}
+.ben{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;flex:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat .e{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.stat .d{font-size:26px;font-weight:800;margin-top:2px;letter-spacing:-.02em}
+.stat .a{font-size:12px;color:var(--muted)}
+.kisiler{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.kisi{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;flex:1;min-width:220px;box-shadow:var(--shadow)}
+.kisi .ad{font-weight:700}
+.kisi .ozet{font-size:12px;color:var(--muted)}
+.bar{height:6px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+.kutu{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.kutu-bas{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.kutu-bas h2{font-size:15px;margin:0;font-weight:800}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.chip.aktif{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ara{width:100%;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px 12px;outline:none}
+.ara:focus{border-color:var(--accent)}
+.gun{padding:10px 16px 4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.olay{display:flex;gap:12px;padding:12px 16px;border-top:1px solid var(--line)}
+.gun + .olay{border-top:none}
+.ikon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;font-size:15px}
+.ikon.push{background:var(--push-soft);color:var(--push)}
+.ikon.pull{background:var(--pull-soft);color:var(--pull)}
+.ikon.pr{background:var(--pr-soft);color:var(--pr)}
+.olay .b{font-weight:700;line-height:1.35}
+.meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;align-items:center}
+.etiket{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.maddeler{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:3px}
+.maddeler li{font-size:13.5px;padding-left:14px;position:relative;overflow-wrap:anywhere}
+.maddeler li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--line)}
+.maddeler li:first-child{font-weight:600}
+.olay .govde{min-width:0;flex:1}
+.bos{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px}
+.not{padding:12px 16px;border-top:1px solid var(--line)}
+.not:first-child{border-top:none}
+.not .b{font-weight:700;display:flex;gap:8px;align-items:center}
+.not .icerik{font-size:13.5px;color:var(--ink);white-space:pre-wrap;margin-top:4px;overflow-wrap:anywhere}
+.not .icerik.kisa{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.not .alt{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center;font-size:12px;color:var(--muted)}
+.tag{font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:1px 7px;font-weight:700}
+.form{padding:12px 16px;border-bottom:1px solid var(--line);display:grid;gap:8px;background:var(--panel2)}
+.form input,.form textarea{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 10px;outline:none;width:100%}
+.form textarea{min-height:80px;resize:vertical}
+.giris{max-width:400px;margin:12vh auto 0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow)}
+.giris h1{margin:14px 0 4px;font-size:22px}
+.giris p{color:var(--muted);margin:0 0 16px}
+.giris input{width:100%;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:10px 12px;margin-bottom:10px;outline:none}
+.giris .btn{width:100%;padding:10px}
+.mesaj{font-size:13px;margin-top:10px;color:var(--muted)}
+.toast{position:fixed;right:16px;bottom:16px;background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(calc(100% + 32px));visibility:hidden;transition:transform .25s,visibility .25s;max-width:calc(100vw - 32px);z-index:9}
+.toast.acik{transform:none;visibility:visible}
+.demo{background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;margin-bottom:14px}
+.gizli{display:none!important}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.top .sub{display:none}.ben span{display:none}.chips{margin-left:0}}
+</style>
+</head>
+<body>
+<!-- ===== AYARLAR: kurulumda doldurulur ===== -->
+<script>
+window.AYAR = {
+  SUPABASE_URL: 'https://dtejnnsiysktxfldocpn.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_5N3OnJtWbF94jeObwPL6bA_XTB3ybCm',
+  REPO_URL: 'https://github.com/aygundeniiz/ortak-calisma'
+};
+</script>
+
+<div id="girisEkrani" class="giris gizli">
+  <div class="logo">K</div>
+  <h1>Kontrol Merkezi</h1>
+  <p>Deniz ve Mata'nın ortak çalışma paneli. E-postanı yaz, giriş bağlantısı gelsin.</p>
+  <form id="girisForm">
+    <input id="girisEposta" type="email" placeholder="ornek@gmail.com" required autocomplete="email">
+    <button class="btn ana" type="submit">Giriş bağlantısı gönder</button>
+  </form>
+  <div id="girisMesaj" class="mesaj"></div>
+</div>
+
+<div id="uygulama" class="wrap gizli">
+  <header class="top">
+    <div class="logo">K</div>
+    <div>
+      <h1>Kontrol Merkezi</h1>
+      <div class="sub">Ortak repo, son işlemler ve ortak hafıza</div>
+    </div>
+    <div class="sag">
+      <a id="repoLink" class="btn" target="_blank" rel="noopener">GitHub</a>
+      <button id="temaBtn" class="btn" title="Tema">◐</button>
+      <div class="ben"><div id="benAvatar" class="avatar"></div><span id="benAd"></span></div>
+      <button id="cikisBtn" class="btn kucuk">Çıkış</button>
+    </div>
+  </header>
+
+  <div id="demoUyari" class="demo gizli">Önizleme modu: Supabase bağlantısı henüz girilmedi, örnek veriler gösteriliyor.</div>
+
+  <section class="stats">
+    <div class="stat"><div class="e">Bu hafta push</div><div class="d" id="sPush">0</div><div class="a" id="sCommit">0 commit</div></div>
+    <div class="stat"><div class="e">Bu hafta pull</div><div class="d" id="sPull">0</div><div class="a">bilgisayarlara çekilen</div></div>
+    <div class="stat"><div class="e">Pull request</div><div class="d" id="sPr">0</div><div class="a" id="sPrA">bu hafta</div></div>
+    <div class="stat"><div class="e">Son işlem</div><div class="d" id="sSon" style="font-size:20px">—</div><div class="a" id="sSonA"></div></div>
+  </section>
+
+  <section class="kisiler" id="kisiler"></section>
+
+  <div class="grid">
+    <section class="kutu">
+      <div class="kutu-bas">
+        <h2>Son işlemler</h2>
+        <div class="chips" id="turFiltre">
+          <button class="chip aktif" data-tur="">Tümü</button>
+          <button class="chip" data-tur="push">Push</button>
+          <button class="chip" data-tur="pull">Pull</button>
+          <button class="chip" data-tur="pr">PR</button>
+        </div>
+        <div class="chips" id="kisiFiltre" style="margin-left:0"></div>
+      </div>
+      <div style="padding:10px 16px 0"><input id="olayAra" class="ara" placeholder="İşlemlerde ara (commit mesajı, dosya adı…)"></div>
+      <div id="akis"></div>
+      <div style="padding:12px 16px;text-align:center"><button id="dahaBtn" class="btn kucuk gizli">Daha fazla göster</button></div>
+    </section>
+
+    <section class="kutu">
+      <div class="kutu-bas">
+        <h2>Ortak hafıza</h2>
+        <button id="notEkleBtn" class="btn kucuk ana" style="margin-left:auto">+ Not</button>
+      </div>
+      <form id="notForm" class="form gizli">
+        <input id="notBaslik" placeholder="Başlık" required maxlength="140">
+        <textarea id="notIcerik" placeholder="Not (karar, fikir, yapılacak…)"></textarea>
+        <input id="notEtiket" placeholder="Etiketler, virgülle (ör. proje-x, karar)">
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button type="button" id="notIptal" class="btn kucuk">Vazgeç</button>
+          <button type="submit" class="btn kucuk ana">Kaydet</button>
+        </div>
+      </form>
+      <div style="padding:10px 16px 0"><input id="notAra" class="ara" placeholder="Hafızada ara"></div>
+      <div id="notlar" style="padding-top:6px"></div>
+    </section>
+  </div>
+</div>
+
+<div id="erisimYok" class="giris gizli">
+  <div class="logo">K</div>
+  <h1>Erişimin yok</h1>
+  <p id="erisimYokMetin">Bu e-posta panele ekli değil.</p>
+  <button id="cikisBtn2" class="btn">Başka e-postayla gir</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(() => {
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RENKLER = ['#c2643c','#2f6fd6','#2e9466','#8a4fd1','#b8892d','#d14f7a'];
+const renk = (ad) => { let h = 0; for (const c of String(ad||'?')) h = (h*31 + c.charCodeAt(0)) >>> 0; return RENKLER[h % RENKLER.length]; };
+const bas = (ad) => String(ad||'?').trim().charAt(0).toLocaleUpperCase('tr-TR');
+const demo = AYAR.SUPABASE_URL.startsWith('SUPABASE');
+
+// Tema
+try { const t = localStorage.getItem('tema'); if (t) document.documentElement.dataset.theme = t; } catch {}
+$('#temaBtn').onclick = () => {
+  const koyu = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const yeni = koyu ? 'light' : 'dark';
+  document.documentElement.dataset.theme = yeni;
+  try { localStorage.setItem('tema', yeni); } catch {}
+};
+
+let sb = null, olaylar = [], notlar = [], uyeler = [], ben = null;
+let filtreTur = '', filtreKisi = '', limit = 40;
+
+function goster(id) { ['#girisEkrani','#uygulama','#erisimYok'].forEach((x) => $(x).classList.toggle('gizli', x !== id)); }
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('acik'); clearTimeout(toast.z); toast.z = setTimeout(() => t.classList.remove('acik'), 4000); }
+
+const GUN = 864e5;
+function goreli(t) {
+  const fark = (Date.now() - new Date(t)) / 1000;
+  if (fark < 60) return 'az önce';
+  if (fark < 3600) return Math.floor(fark/60) + ' dk önce';
+  if (fark < 86400) return Math.floor(fark/3600) + ' saat önce';
+  if (fark < 86400*7) return Math.floor(fark/86400) + ' gün önce';
+  return new Date(t).toLocaleDateString('tr-TR', { day:'numeric', month:'short' });
+}
+function gunAdi(t) {
+  const d = new Date(t); const bugun = new Date(); bugun.setHours(0,0,0,0);
+  const g = new Date(d); g.setHours(0,0,0,0);
+  const fark = Math.round((bugun - g) / GUN);
+  if (fark === 0) return 'Bugün'; if (fark === 1) return 'Dün';
+  return d.toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long' });
+}
+const saat = (t) => new Date(t).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+const grup = (tur) => tur.startsWith('pr_') ? 'pr' : tur;
+const IKON = { push:'↑', pull:'↓', pr:'⇄' };
+const TUR_AD = { push:'push', pull:'pull', pr_acildi:'PR açıldı', pr_birlesti:'merge', pr_kapandi:'PR kapandı' };
+
+function kisiAdi(o) {
+  if (o.kisi) return o.kisi;
+  const u = uyeler.find((u) => u.github && u.github === o.github_kullanici);
+  return u ? u.ad : (o.github_kullanici || 'Biri');
+}
+
+function ciz() {
+  // İstatistikler (son 7 gün)
+  const hafta = olaylar.filter((o) => Date.now() - new Date(o.olusturma) < 7*GUN);
+  const push = hafta.filter((o) => o.tur === 'push');
+  $('#sPush').textContent = push.length;
+  $('#sCommit').textContent = push.reduce((a,o) => a + (o.commit_sayisi||0), 0) + ' commit';
+  $('#sPull').textContent = hafta.filter((o) => o.tur === 'pull').length;
+  const pr = hafta.filter((o) => o.tur.startsWith('pr_'));
+  $('#sPr').textContent = pr.length;
+  $('#sPrA').textContent = pr.filter((o) => o.tur === 'pr_birlesti').length + ' birleşti, bu hafta';
+  if (olaylar[0]) { $('#sSon').textContent = goreli(olaylar[0].olusturma); $('#sSonA').textContent = kisiAdi(olaylar[0]) + ' · ' + TUR_AD[olaylar[0].tur]; }
+
+  // Kişiler
+  const adlar = [...new Set([...uyeler.map((u) => u.ad), ...olaylar.map(kisiAdi)])].filter(Boolean);
+  const say = (ad) => hafta.filter((o) => kisiAdi(o) === ad);
+  const enCok = Math.max(1, ...adlar.map((a) => say(a).length));
+  $('#kisiler').innerHTML = adlar.map((ad) => {
+    const s = say(ad); const son = olaylar.find((o) => kisiAdi(o) === ad);
+    const c = s.filter((o) => o.tur === 'push').reduce((a,o) => a + (o.commit_sayisi||0), 0);
+    return `<div class="kisi"><div class="avatar" style="background:${renk(ad)}">${esc(bas(ad))}</div>
+      <div style="flex:1;min-width:0"><div class="ad">${esc(ad)}</div>
+      <div class="ozet">Bu hafta ${s.length} işlem, ${c} commit${son ? ' · son: ' + goreli(son.olusturma) : ''}</div>
+      <div class="bar"><i style="width:${Math.round(s.length/enCok*100)}%;background:${renk(ad)}"></i></div></div></div>`;
+  }).join('');
+  $('#kisiFiltre').innerHTML = adlar.length > 1 ? ['', ...adlar].map((a) => `<button class="chip ${a === filtreKisi ? 'aktif' : ''}" data-kisi="${esc(a)}">${a ? esc(a) : 'Herkes'}</button>`).join('') : '';
+
+  // Akış
+  const q = $('#olayAra').value.trim().toLocaleLowerCase('tr-TR');
+  const liste = olaylar.filter((o) => (!filtreTur || grup(o.tur) === filtreTur) && (!filtreKisi || kisiAdi(o) === filtreKisi)
+    && (!q || JSON.stringify([o.baslik, o.maddeler, o.dosyalar, o.dal]).toLocaleLowerCase('tr-TR').includes(q)));
+  let html = '', sonGun = '';
+  for (const o of liste.slice(0, limit)) {
+    const g = gunAdi(o.olusturma);
+    if (g !== sonGun) { html += `<div class="gun">${esc(g)}</div>`; sonGun = g; }
+    const ad = kisiAdi(o);
+    html += `<article class="olay"><div class="ikon ${grup(o.tur)}">${IKON[grup(o.tur)]}</div><div class="govde">
+      <div class="b">${esc(o.baslik)}</div>
+      <div class="meta"><span class="avatar" style="width:18px;height:18px;font-size:10px;background:${renk(ad)}">${esc(bas(ad))}</span>${esc(ad)}${o.makine ? ` <span class="etiket" title="Laptop">💻 ${esc(o.makine)}</span>` : ''}
+        <span>· ${saat(o.olusturma)}</span><span class="etiket">${esc(TUR_AD[o.tur])}</span>${o.dal ? `<span class="etiket">${esc(o.dal)}</span>` : ''}
+        ${o.link ? `<a href="${esc(o.link)}" target="_blank" rel="noopener">GitHub'da aç ↗</a>` : ''}</div>
+      ${(o.maddeler||[]).length ? `<ul class="maddeler">${o.maddeler.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>` : ''}
+    </div></article>`;
+  }
+  $('#akis').innerHTML = html || `<div class="bos">${olaylar.length ? 'Bu filtreye uyan işlem yok.' : 'Henüz işlem yok. İlk push geldiğinde burada madde madde özetini göreceksin.'}</div>`;
+  $('#dahaBtn').classList.toggle('gizli', liste.length <= limit);
+
+  notlariCiz();
+}
+
+function notlariCiz() {
+  const q = $('#notAra').value.trim().toLocaleLowerCase('tr-TR');
+  const liste = notlar.filter((n) => !q || [n.baslik, n.icerik, ...(n.etiketler||[])].join(' ').toLocaleLowerCase('tr-TR').includes(q));
+  $('#notlar').innerHTML = liste.map((n) => `<div class="not" data-id="${n.id}">
+    <div class="b">${esc(n.baslik)}</div>
+    <div class="icerik kisa">${esc(n.icerik)}</div>
+    <div class="alt">${(n.etiketler||[]).map((e) => `<span class="tag">${esc(e)}</span>`).join('')}
+      <span>${esc(n.yazar || '')} · ${goreli(n.guncelleme)}</span>
+      <span class="etiket">${n.kaynak === 'repo' ? esc(n.dosya_yolu) : 'panel'}</span>
+      ${n.kaynak === 'panel' ? `<button class="btn kucuk sil" data-id="${n.id}" style="margin-left:auto">Sil</button>` : ''}</div>
+  </div>`).join('') || `<div class="bos">${notlar.length ? 'Eşleşen not yok.' : 'Ortak hafıza boş. Claude\'un repoya yazdığı notlar ve buradan eklediklerin burada görünür.'}</div>`;
+}
+
+// Olaylar
+$('#turFiltre').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; filtreTur = b.dataset.tur; [...$('#turFiltre').children].forEach((c) => c.classList.toggle('aktif', c === b)); ciz(); };
+$('#kisiFiltre').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; filtreKisi = b.dataset.kisi; ciz(); };
+$('#olayAra').oninput = ciz;
+$('#notAra').oninput = notlariCiz;
+$('#dahaBtn').onclick = () => { limit += 40; ciz(); };
+$('#notlar').onclick = async (e) => {
+  const sil = e.target.closest('.sil');
+  if (sil) {
+    if (!sb) { notlar = notlar.filter((n) => String(n.id) !== sil.dataset.id); return notlariCiz(); }
+    const { error } = await sb.from('hafiza_notlari').delete().eq('id', sil.dataset.id);
+    if (error) return toast('Silinemedi: ' + error.message);
+    notlar = notlar.filter((n) => String(n.id) !== sil.dataset.id); notlariCiz(); return;
+  }
+  const kart = e.target.closest('.not'); if (kart) kart.querySelector('.icerik').classList.toggle('kisa');
+};
+$('#notEkleBtn').onclick = () => { $('#notForm').classList.toggle('gizli'); $('#notBaslik').focus(); };
+$('#notIptal').onclick = () => $('#notForm').classList.add('gizli');
+$('#notForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const kayit = { baslik: $('#notBaslik').value.trim(), icerik: $('#notIcerik').value.trim(),
+    etiketler: $('#notEtiket').value.split(',').map((x) => x.trim()).filter(Boolean), kaynak: 'panel', yazar: ben?.ad };
+  if (!kayit.baslik) return;
+  if (sb) {
+    const { data, error } = await sb.from('hafiza_notlari').insert(kayit).select().single();
+    if (error) return toast('Kaydedilemedi: ' + error.message);
+    if (!notlar.some((n) => n.id === data.id)) notlar.unshift(data);
+  } else notlar.unshift({ ...kayit, id: Date.now(), guncelleme: new Date().toISOString() });
+  e.target.reset(); $('#notForm').classList.add('gizli'); notlariCiz(); toast('Not ortak hafızaya eklendi');
+};
+
+function bildir(baslik) {
+  toast(baslik);
+  try { if (document.hidden && 'Notification' in window && Notification.permission === 'granted') new Notification('Kontrol Merkezi', { body: baslik }); } catch {}
+}
+
+function benCiz() {
+  $('#benAd').textContent = ben.ad; $('#benAvatar').textContent = bas(ben.ad); $('#benAvatar').style.background = renk(ben.ad);
+  if (AYAR.REPO_URL.startsWith('http')) $('#repoLink').href = AYAR.REPO_URL; else $('#repoLink').classList.add('gizli');
+}
+
+async function yukle() {
+  const [u, o, n] = await Promise.all([
+    sb.from('uyeler').select('*'),
+    sb.from('repo_olaylari').select('*').order('olusturma', { ascending: false }).limit(500),
+    sb.from('hafiza_notlari').select('*').order('guncelleme', { ascending: false }),
+  ]);
+  uyeler = u.data || []; olaylar = o.data || []; notlar = n.data || [];
+}
+
+async function basla(session) {
+  if (!session) return goster('#girisEkrani');
+  const email = session.user.email.toLowerCase();
+  const { data } = await sb.from('uyeler').select('*');
+  ben = (data || []).find((u) => u.email.toLowerCase() === email);
+  if (!ben) { $('#erisimYokMetin').textContent = `${email} bu panele ekli değil. Deniz'den seni eklemesini iste.`; return goster('#erisimYok'); }
+  goster('#uygulama'); benCiz();
+  await yukle(); ciz();
+  try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch {}
+  sb.channel('canli')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'repo_olaylari' }, (p) => { olaylar.unshift(p.new); ciz(); bildir(p.new.baslik); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'hafiza_notlari' }, async () => { const r = await sb.from('hafiza_notlari').select('*').order('guncelleme', { ascending: false }); notlar = r.data || []; notlariCiz(); })
+    .subscribe();
+  setInterval(ciz, 60000);
+}
+
+if (demo) {
+  const s = (dk) => new Date(Date.now() - dk*60000).toISOString();
+  uyeler = [{ ad:'Deniz', github:'deniz' }, { ad:'Mata', github:'mata' }];
+  ben = uyeler[0];
+  olaylar = [
+    { tur:'push', kisi:'Deniz', dal:'main', baslik:'Deniz 3 commit gönderdi: Kafe projesi için kat planı eklendi', commit_sayisi:3, link:'#', olusturma:s(12),
+      maddeler:['3 commit, 7 dosya (4 yeni, 3 düzenlenen)','📝 Kafe projesi için kat planı eklendi (Deniz)','📝 Malzeme listesi güncellendi (Deniz)','📝 Render ayarları düzeltildi (Deniz)','➕ Eklenen: kat-plani.pdf, mobilya.csv, notlar.md, render-01.png','✏️ Düzenlenen: README.md, malzeme.md, ayarlar.json','📁 En çok değişen klasörler: projeler/kafe (6), hafiza (1)','🧠 Ortak hafıza güncellendi: kafe-projesi.md'] },
+    { tur:'pull', kisi:'Mata', makine:'LAPTOP-MATA', dal:'main', baslik:'Mata (LAPTOP-MATA) 3 yeni commit çekti', commit_sayisi:3, olusturma:s(5), maddeler:['📥 Kafe projesi için kat planı eklendi (Deniz)','📥 Malzeme listesi güncellendi (Deniz)','📥 Render ayarları düzeltildi (Deniz)'] },
+    { tur:'pr_birlesti', kisi:'Mata', dal:'main', baslik:'Mata PR birleştirdi (merge): Sunum şablonu', commit_sayisi:2, link:'#', olusturma:s(60*26),
+      maddeler:['#4: Sunum şablonu','mata/sunum → main','2 commit, 5 dosya, +240 / -12 satır'] },
+    { tur:'push', kisi:'Mata', dal:'mata/sunum', baslik:'Mata: Sunum şablonuna kapak sayfası eklendi', commit_sayisi:1, link:'#', olusturma:s(60*27),
+      maddeler:['1 commit, 2 dosya (1 yeni, 1 düzenlenen)','📝 Sunum şablonuna kapak sayfası eklendi (Mata)','➕ Eklenen: kapak.html','✏️ Düzenlenen: stil.css','📁 En çok değişen klasörler: projeler/sunum (2)'] },
+  ];
+  notlar = [
+    { id:1, baslik:'Kafe projesi: renk paleti kararı', icerik:'Toprak tonları + koyu yeşil. Deniz ve Mata 22 Kasım\'da karar verdi. Referans görselleri projeler/kafe/referans klasöründe.', etiketler:['kafe','karar'], kaynak:'repo', dosya_yolu:'hafiza/kafe-projesi.md', yazar:'Deniz', guncelleme:s(12) },
+    { id:2, baslik:'Jüri tarihi', icerik:'Ara jüri 5 Aralık. Sunum dosyası 4 Aralık akşamına hazır olmalı.', etiketler:['takvim'], kaynak:'panel', yazar:'Mata', guncelleme:s(300) },
+  ];
+  $('#demoUyari').classList.remove('gizli');
+  goster('#uygulama'); benCiz(); ciz();
+} else {
+  sb = supabase.createClient(AYAR.SUPABASE_URL, AYAR.SUPABASE_ANON_KEY);
+  $('#girisForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.signInWithOtp({ email: $('#girisEposta').value.trim(), options: { emailRedirectTo: location.origin + location.pathname } });
+    $('#girisMesaj').textContent = error ? 'Hata: ' + error.message : 'Bağlantı gönderildi. E-postanı kontrol et ve bağlantıya tıkla.';
+  };
+  const cikis = async () => { await sb.auth.signOut(); location.reload(); };
+  $('#cikisBtn').onclick = cikis; $('#cikisBtn2').onclick = cikis;
+  let basladi = false;
+  sb.auth.onAuthStateChange((ev, session) => { if (session && !basladi) { basladi = true; setTimeout(() => basla(session), 0); } else if (!session && ev === 'SIGNED_OUT') goster('#girisEkrani'); });
+  sb.auth.getSession().then(({ data }) => { if (!data.session) goster('#girisEkrani'); });
+}
+})();
+</script>
+</body>
+</html>
