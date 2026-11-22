@@ -69,6 +69,17 @@ header.top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
 .ikon.push{background:var(--push-soft);color:var(--push)}
 .ikon.pull{background:var(--pull-soft);color:var(--pull)}
 .ikon.pr{background:var(--pr-soft);color:var(--pr)}
+.ikon.cakisma{background:#fbe4e1;color:var(--warn)}
+:root[data-theme="dark"] .ikon.cakisma{background:#3d2220}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ikon.cakisma{background:#3d2220}}
+.canli{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--pull);background:var(--pull-soft);border-radius:999px;padding:1px 8px;margin-left:6px}
+.canli::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--pull);animation:nabiz 1.6s infinite}
+@keyframes nabiz{50%{opacity:.35}}
+.kisi .simdi{font-size:12px;color:var(--pull);margin-top:2px;overflow-wrap:anywhere}
+details.onceki{margin-top:8px;font-size:13px}
+details.onceki summary{cursor:pointer;color:var(--muted);font-weight:600}
+details.onceki .ic{border-left:2px solid var(--line);margin:6px 0 0 4px;padding-left:10px;display:grid;gap:8px}
+details.onceki .ic b{font-weight:600}
 .olay .b{font-weight:700;line-height:1.35}
 .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;align-items:center}
 .etiket{font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
@@ -157,6 +168,7 @@ window.AYAR = {
           <button class="chip aktif" data-tur="">Tümü</button>
           <button class="chip" data-tur="push">Push</button>
           <button class="chip" data-tur="pull">Pull</button>
+          <button class="chip" data-tur="cakisma">Çakışma</button>
           <button class="chip" data-tur="pr">PR</button>
         </div>
         <div class="chips" id="kisiFiltre" style="margin-left:0"></div>
@@ -214,7 +226,7 @@ $('#temaBtn').onclick = () => {
   try { localStorage.setItem('tema', yeni); } catch {}
 };
 
-let sb = null, olaylar = [], notlar = [], uyeler = [], ben = null;
+let sb = null, olaylar = [], notlar = [], uyeler = [], oturumlar = [], ben = null;
 let filtreTur = '', filtreKisi = '', limit = 40;
 
 function goster(id) { ['#girisEkrani','#uygulama','#erisimYok'].forEach((x) => $(x).classList.toggle('gizli', x !== id)); }
@@ -238,8 +250,10 @@ function gunAdi(t) {
 }
 const saat = (t) => new Date(t).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
 const grup = (tur) => tur.startsWith('pr_') ? 'pr' : tur;
-const IKON = { push:'↑', pull:'↓', pr:'⇄' };
-const TUR_AD = { push:'push', pull:'pull', pr_acildi:'PR açıldı', pr_birlesti:'merge', pr_kapandi:'PR kapandı' };
+const IKON = { push:'↑', pull:'↓', pr:'⇄', cakisma:'!' };
+const TUR_AD = { push:'push', pull:'pull', pr_acildi:'PR açıldı', pr_birlesti:'merge', pr_kapandi:'PR kapandı', cakisma:'çakışma' };
+// Şu an açık Claude oturumları (son 20 dakikada nabız gelen)
+const aktifOturumlar = (ad) => oturumlar.filter((o) => o.kisi === ad && !o.bitis && Date.now() - new Date(o.son_nabiz) < 20*60000);
 
 function kisiAdi(o) {
   if (o.kisi) return o.kisi;
@@ -266,8 +280,10 @@ function ciz() {
   $('#kisiler').innerHTML = adlar.map((ad) => {
     const s = say(ad); const son = olaylar.find((o) => kisiAdi(o) === ad);
     const c = s.filter((o) => o.tur === 'push').reduce((a,o) => a + (o.commit_sayisi||0), 0);
+    const akt = aktifOturumlar(ad);
+    const simdi = akt.length ? `<div class="simdi">💻 ${akt.map((o) => esc(o.makine || 'laptop')).join(', ')} · ${goreli(akt[0].son_nabiz)}${(akt[0].son_dosyalar||[]).length ? ' · ' + esc(akt[0].son_dosyalar.slice(0,3).map((d) => d.split('/').pop()).join(', ')) : ''}</div>` : '';
     return `<div class="kisi"><div class="avatar" style="background:${renk(ad)}">${esc(bas(ad))}</div>
-      <div style="flex:1;min-width:0"><div class="ad">${esc(ad)}</div>
+      <div style="flex:1;min-width:0"><div class="ad">${esc(ad)}${akt.length ? '<span class="canli">şu an çalışıyor</span>' : ''}</div>${simdi}
       <div class="ozet">Bu hafta ${s.length} işlem, ${c} commit${son ? ' · son: ' + goreli(son.olusturma) : ''}</div>
       <div class="bar"><i style="width:${Math.round(s.length/enCok*100)}%;background:${renk(ad)}"></i></div></div></div>`;
   }).join('');
@@ -277,21 +293,33 @@ function ciz() {
   const q = $('#olayAra').value.trim().toLocaleLowerCase('tr-TR');
   const liste = olaylar.filter((o) => (!filtreTur || grup(o.tur) === filtreTur) && (!filtreKisi || kisiAdi(o) === filtreKisi)
     && (!q || JSON.stringify([o.baslik, o.maddeler, o.dosyalar, o.dal]).toLocaleLowerCase('tr-TR').includes(q)));
+  // Aynı kişinin 30 dk içindeki art arda otomatik kayıtlarını tek kartta topla
+  const gruplar = [];
+  for (const o of liste) {
+    const g = gruplar[gruplar.length - 1];
+    if (g && o.tur === 'push' && g[0].tur === 'push' && kisiAdi(g[0]) === kisiAdi(o) && (g[0].makine || '') === (o.makine || '')
+      && gunAdi(g[0].olusturma) === gunAdi(o.olusturma) && new Date(g[g.length-1].olusturma) - new Date(o.olusturma) < 30*60000) g.push(o);
+    else gruplar.push([o]);
+  }
   let html = '', sonGun = '';
-  for (const o of liste.slice(0, limit)) {
-    const g = gunAdi(o.olusturma);
-    if (g !== sonGun) { html += `<div class="gun">${esc(g)}</div>`; sonGun = g; }
+  for (const g of gruplar.slice(0, limit)) {
+    const o = g[0];
+    const gn = gunAdi(o.olusturma);
+    if (gn !== sonGun) { html += `<div class="gun">${esc(gn)}</div>`; sonGun = gn; }
     const ad = kisiAdi(o);
-    html += `<article class="olay"><div class="ikon ${grup(o.tur)}">${IKON[grup(o.tur)]}</div><div class="govde">
+    const onceki = g.slice(1);
+    const commitToplam = g.reduce((a, x) => a + (x.commit_sayisi || 0), 0);
+    html += `<article class="olay"><div class="ikon ${grup(o.tur)}">${IKON[grup(o.tur)] || '•'}</div><div class="govde">
       <div class="b">${esc(o.baslik)}</div>
       <div class="meta"><span class="avatar" style="width:18px;height:18px;font-size:10px;background:${renk(ad)}">${esc(bas(ad))}</span>${esc(ad)}${o.makine ? ` <span class="etiket" title="Laptop">💻 ${esc(o.makine)}</span>` : ''}
-        <span>· ${saat(o.olusturma)}</span><span class="etiket">${esc(TUR_AD[o.tur])}</span>${o.dal ? `<span class="etiket">${esc(o.dal)}</span>` : ''}
+        <span>· ${onceki.length ? saat(g[g.length-1].olusturma) + '–' : ''}${saat(o.olusturma)}</span><span class="etiket">${esc(TUR_AD[o.tur] || o.tur)}</span>${onceki.length ? `<span class="etiket">${g.length} kayıt, ${commitToplam} commit</span>` : ''}${o.dal ? `<span class="etiket">${esc(o.dal)}</span>` : ''}
         ${o.link ? `<a href="${esc(o.link)}" target="_blank" rel="noopener">GitHub'da aç ↗</a>` : ''}</div>
       ${(o.maddeler||[]).length ? `<ul class="maddeler">${o.maddeler.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>` : ''}
+      ${onceki.length ? `<details class="onceki"><summary>+ ${onceki.length} önceki kayıt</summary><div class="ic">${onceki.map((x) => `<div><b>${saat(x.olusturma)} · ${esc(x.baslik)}</b>${(x.maddeler||[]).length ? `<ul class="maddeler">${x.maddeler.slice(1).map((m) => `<li>${esc(m)}</li>`).join('')}</ul>` : ''}</div>`).join('')}</div></details>` : ''}
     </div></article>`;
   }
   $('#akis').innerHTML = html || `<div class="bos">${olaylar.length ? 'Bu filtreye uyan işlem yok.' : 'Henüz işlem yok. İlk push geldiğinde burada madde madde özetini göreceksin.'}</div>`;
-  $('#dahaBtn').classList.toggle('gizli', liste.length <= limit);
+  $('#dahaBtn').classList.toggle('gizli', gruplar.length <= limit);
 
   notlariCiz();
 }
@@ -351,12 +379,13 @@ function benCiz() {
 }
 
 async function yukle() {
-  const [u, o, n] = await Promise.all([
+  const [u, o, n, ot] = await Promise.all([
     sb.from('uyeler').select('*'),
     sb.from('repo_olaylari').select('*').order('olusturma', { ascending: false }).limit(500),
     sb.from('hafiza_notlari').select('*').order('guncelleme', { ascending: false }),
+    sb.from('oturumlar').select('*').is('bitis', null).order('son_nabiz', { ascending: false }).limit(20),
   ]);
-  uyeler = u.data || []; olaylar = o.data || []; notlar = n.data || [];
+  uyeler = u.data || []; olaylar = o.data || []; notlar = n.data || []; oturumlar = ot.data || [];
 }
 
 async function basla(session) {
@@ -370,6 +399,11 @@ async function basla(session) {
   try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch {}
   sb.channel('canli')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'repo_olaylari' }, (p) => { olaylar.unshift(p.new); ciz(); bildir(p.new.baslik); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'oturumlar' }, async (p) => {
+      const r = await sb.from('oturumlar').select('*').is('bitis', null).order('son_nabiz', { ascending: false }).limit(20);
+      oturumlar = r.data || []; ciz();
+      if (p.eventType === 'INSERT' && p.new.kisi !== ben.ad) bildir(`${p.new.kisi} çalışmaya başladı${p.new.makine ? ' (' + p.new.makine + ')' : ''}`);
+    })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'hafiza_notlari' }, async () => { const r = await sb.from('hafiza_notlari').select('*').order('guncelleme', { ascending: false }); notlar = r.data || []; notlariCiz(); })
     .subscribe();
   setInterval(ciz, 60000);
@@ -379,7 +413,14 @@ if (demo) {
   const s = (dk) => new Date(Date.now() - dk*60000).toISOString();
   uyeler = [{ ad:'Deniz', github:'deniz' }, { ad:'Mata', github:'mata' }];
   ben = uyeler[0];
+  oturumlar = [{ kisi:'Mata', makine:'LAPTOP-MATA', son_nabiz:s(2), bitis:null, son_dosyalar:['projeler/sunum/kapak.html','projeler/sunum/stil.css'] }];
   olaylar = [
+    { tur:'push', kisi:'Mata', makine:'LAPTOP-MATA', dal:'main', baslik:'Mata çalışmasını kaydetti: kapak.html, stil.css', commit_sayisi:1, olusturma:s(2),
+      maddeler:['1 commit, 2 dosya (2 düzenlenen)','📝 Otomatik kayıt: kapak.html, stil.css (Mata)','✏️ Düzenlenen: kapak.html, stil.css'] },
+    { tur:'push', kisi:'Mata', makine:'LAPTOP-MATA', dal:'main', baslik:'Mata çalışmasını kaydetti: kapak.html', commit_sayisi:1, olusturma:s(4),
+      maddeler:['1 commit, 1 dosya (1 düzenlenen)','📝 Otomatik kayıt: kapak.html (Mata)','✏️ Düzenlenen: kapak.html'] },
+    { tur:'cakisma', kisi:'Mata', makine:'LAPTOP-MATA', dal:'main', baslik:'Mata (LAPTOP-MATA): aynı dosyada çakışma, iş yedeklendi', commit_sayisi:0, olusturma:s(8),
+      maddeler:['⚠️ Aynı anda değişen dosyalar: malzeme.md','💾 Kaybolmasın diye "yedek/mata-202611221402" dalına kaydedildi','🛠️ Claude ile birlikte birleştirilecek'] },
     { tur:'push', kisi:'Deniz', dal:'main', baslik:'Deniz 3 commit gönderdi: Kafe projesi için kat planı eklendi', commit_sayisi:3, link:'#', olusturma:s(12),
       maddeler:['3 commit, 7 dosya (4 yeni, 3 düzenlenen)','📝 Kafe projesi için kat planı eklendi (Deniz)','📝 Malzeme listesi güncellendi (Deniz)','📝 Render ayarları düzeltildi (Deniz)','➕ Eklenen: kat-plani.pdf, mobilya.csv, notlar.md, render-01.png','✏️ Düzenlenen: README.md, malzeme.md, ayarlar.json','📁 En çok değişen klasörler: projeler/kafe (6), hafiza (1)','🧠 Ortak hafıza güncellendi: kafe-projesi.md'] },
     { tur:'pull', kisi:'Mata', makine:'LAPTOP-MATA', dal:'main', baslik:'Mata (LAPTOP-MATA) 3 yeni commit çekti', commit_sayisi:3, olusturma:s(5), maddeler:['📥 Kafe projesi için kat planı eklendi (Deniz)','📥 Malzeme listesi güncellendi (Deniz)','📥 Render ayarları düzeltildi (Deniz)'] },
