@@ -90,7 +90,7 @@ git -C $hedef config user.name $ad
 git -C $hedef config pull.rebase true
 git -C $hedef config rebase.autoStash true
 Tamam "Bu laptop '$ad ($env:COMPUTERNAME)' olarak kaydedilecek"
-Tamam "Claude her oturum basinda otomatik pull, sonunda otomatik commit + push yapacak"
+Tamam "Claude her mesajda otomatik kaydedip senkronlayacak; ayni anda calisabilirsiniz"
 
 Write-Host "`nKurulum bitti!" -ForegroundColor Green
 Write-Host "Calisma klasoru: $hedef"
