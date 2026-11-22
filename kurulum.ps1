@@ -3,7 +3,9 @@
 #   irm https://aygundeniiz.github.io/kontrol-merkezi/kurulum.ps1 | iex
 # Not: Bu dosya bilerek Turkce karakter kullanmiyor (Windows PowerShell kodlama sorunlari icin).
 
-$ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1, git/gh'nin normal uyari ciktilarini (stderr) hata sanip betigi durdurmasin diye
+# 'Continue' kullaniliyor; gercek hatalar asagida $LASTEXITCODE ile kontrol edilip throw ediliyor.
+$ErrorActionPreference = 'Continue'
 $Repo = 'aygundeniiz/ortak-calisma'          # ornek: kullanici/ortak-calisma
 $PanelAdresi = 'https://aygundeniiz.github.io/kontrol-merkezi/'
 
@@ -43,12 +45,14 @@ else {
 
 # 3) GitHub girisi
 Adim "GitHub hesabina giris"
-gh auth status 2>$null | Out-Null
+$null = cmd /c "gh auth status >nul 2>&1"
 if ($LASTEXITCODE -ne 0) {
-  Write-Host "    Tarayicida GitHub acilacak, ekrandaki kodu girip onaylayin."
+  Write-Host "    Tarayicida GitHub acilacak. Ekrandaki 8 haneli kodu girip 'Authorize' deyin."
   gh auth login --hostname github.com --git-protocol https --web
+  $null = cmd /c "gh auth status >nul 2>&1"
+  if ($LASTEXITCODE -ne 0) { throw "GitHub girisi tamamlanamadi. Ayni satiri tekrar calistirin." }
 }
-gh auth setup-git | Out-Null
+$null = cmd /c "gh auth setup-git >nul 2>&1"
 Tamam "GitHub girisi tamam ($(gh api user --jq .login))"
 
 # 4) Git kimligi
@@ -68,9 +72,9 @@ $anaKlasor = Join-Path $env:OneDrive 'YAPAY ZEKA MASTERCLASS'
 if (-not $env:OneDrive -or -not (Test-Path $anaKlasor)) { $anaKlasor = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'YAPAY ZEKA MASTERCLASS' }
 New-Item -ItemType Directory -Force -Path $anaKlasor | Out-Null
 $hedef = Join-Path $anaKlasor ($Repo.Split('/')[1])
-if (Test-Path (Join-Path $hedef '.git')) { git -C $hedef pull | Out-Null; Tamam "Repo zaten vardi, guncellendi" }
+if (Test-Path (Join-Path $hedef '.git')) { $null = cmd /c "git -C `"$hedef`" pull >nul 2>&1"; Tamam "Repo zaten vardi, guncellendi" }
 else {
-  gh repo clone $Repo $hedef
+  $null = cmd /c "gh repo clone $Repo `"$hedef`" 2>&1"
   if ($LASTEXITCODE -ne 0) { throw "Repo indirilemedi. GitHub'dan gelen davet e-postasini kabul ettiginizden emin olun: https://github.com/$Repo/invitations" }
   Tamam "Repo indirildi"
 }
